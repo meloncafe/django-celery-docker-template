@@ -10,22 +10,33 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
+from datetime import timedelta
+
+import environ
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False),
+    SECRET_KEY=(str, "wow I'm a really bad default secret key")
+)
+# reading .env file
+environ.Env.read_env(os.path.join(os.path.join(BASE_DIR, 'config'), '.env'))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l5w%^xs1r5_byf=x0_ed=!efe+i-04@#a_um(^%=zw1=@e36!z'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [env.str('ALLOWED_HOSTS')]
 
 
 # Application definition
@@ -47,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+'request_logging.middleware.LoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -54,7 +66,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': [os.path.join(BASE_DIR, 'templates')]
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -76,8 +88,13 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
+        'DEFAULT-CHARACTER-SET': 'utf8'
     }
 }
 
@@ -122,3 +139,94 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+CELERYBEAT_SCHEDULE = {
+    'get_tgd_articles': {
+        'task': 'thimo.tgd.tasks.get_tgd_articles',
+        'schedule': timedelta(seconds=300),
+    },
+    'send_discord_notify': {
+        'task': 'thimo.tgd.tasks.send_discord_notify',
+        'schedule': timedelta(seconds=400),
+    },
+    'update_twitch_token': {
+        'task': 'thimo.account.tasks.update_twitch_token',
+        'schedule': timedelta(hours=1),
+    },
+    'update_discord_token': {
+        'task': 'thimo.account.tasks.update_discord_token',
+        'schedule': timedelta(hours=1),
+    }
+}
+
+broker_url = 'redis://{}:{}/0'.format(env('REDIS_HOST'), env('REDIS_PORT'))
+result_backend = 'redis://{}:{}/0'.format(env('REDIS_HOST'), env('REDIS_PORT'))
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "%s:%s" % (env('REDIS_HOST'), env('REDIS_PORT')),
+        "OPTIONS": {
+            "DB": 1,
+        }
+    }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'pipe_separated': {
+            'format': '%(asctime)s | %(levelname)s | %(name)s | %(message)s'
+        },
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+    },
+    'handlers': {
+        'console_log': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
+            'formatter': 'pipe_separated',
+        }
+    },
+    'loggers': {
+        'thimo': {
+            'handlers': ['console_log'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['console_log'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db': {
+            'handlers': ['console_log'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console_log'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.template': {
+            'handlers': ['console_log'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console_log'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+    'root': {
+        'handlers': ['console_log'],
+        'level': 'INFO',
+    }
+}
