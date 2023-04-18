@@ -24,7 +24,7 @@ install_requires = [
 ]
 
 setup(
-    name='Thimo Support',
+    name='Django Template',
     version=backend.__version__,
     packages=['backend'],
     url='https://github.com/meloncafe/django-celery-docker-template',
