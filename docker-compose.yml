@@ -1,0 +1,103 @@
+version: "3.7"
+
+services:
+  db:
+    image: mariadb:10.7
+    container_name: django-db
+    restart: unless-stopped
+    env_file:
+      - ./config/.env
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+        - db_data:/var/lib/mysql
+    expose:
+        - 3306
+
+  redis:
+    image: redis:7-alpine
+    container_name: django-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+        - redis_data:/data
+
+  web:
+    image: nginx:latest
+    container_name: django-web
+    restart: unless-stopped
+    volumes:
+        - app-data:/app
+        - ./docker/config/nginx:/etc/nginx/conf.d
+    ports:
+      - 8000:8000
+
+#  celery-beat:
+#    build:
+#        context: .
+#        dockerfile: ./docker/app/Dockerfile
+#    container_name: django-celery-beat
+#    restart: unless-stopped
+#    entrypoint: /app/celery-entrypoint.sh beat
+#    volumes:
+#        - app-data:/app
+#    depends_on:
+#        - db
+#        - redis
+#        - web
+#
+#  celery-worker:
+#    build:
+#      context: .
+#      dockerfile: ./docker/app/Dockerfile
+#    container_name: django-celery-worker
+#    restart: unless-stopped
+#    entrypoint: /app/celery-entrypoint.sh worker
+#    volumes:
+#        - app-data:/app
+#    depends_on:
+#        - db
+#        - redis
+#        - web
+#
+#  celery-flower:
+#    build:
+#      context: .
+#      dockerfile: ./docker/app/Dockerfile
+#    container_name: django-celery-flower
+#    restart: unless-stopped
+#    entrypoint: /app/celery-entrypoint.sh flower
+#    volumes:
+#        - app-data:/app
+#    depends_on:
+#        - db
+#        - redis
+#        - web
+#    expose:
+#        - 5555
+
+  django:
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
+    container_name: django-app
+    restart: unless-stopped
+    entrypoint: /app/server-entrypoint.sh
+    volumes:
+        - app-data:/app
+    depends_on:
+        - db
+        - redis
+        - web
+
+volumes:
+    app-data:
+    db_data:
+    redis_data:

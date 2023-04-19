@@ -16,6 +16,8 @@ from datetime import timedelta
 import environ
 from pathlib import Path
 
+from django.contrib import messages
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 env = environ.Env(
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -89,11 +92,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DATABASE_NAME'),
-        'USER': env('DATABASE_USER'),
-        'PASSWORD': env('DATABASE_PASSWORD'),
-        'HOST': env('DATABASE_HOST'),
-        'PORT': env('DATABASE_PORT'),
+        'NAME': env('MARIADB_DATABASE'),
+        'USER': env('MARIADB_DATABASE_USER'),
+        'PASSWORD': env('MARIADB_ROOT_PASSWORD'),
+        'HOST': env('MARIADB_DATABASE_HOST'),
+        'PORT': env('MARIADB_DATABASE_PORT'),
         'DEFAULT-CHARACTER-SET': 'utf8'
     }
 }
@@ -131,9 +134,15 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-STATIC_URL = 'static/'
+# https://docs.djangoproject.com/en/2.2/howto/static-files/
+STATIC_URL = '/static/'
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -142,24 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
-CELERYBEAT_SCHEDULE = {
-    'get_tgd_articles': {
-        'task': 'thimo.tgd.tasks.get_tgd_articles',
-        'schedule': timedelta(seconds=300),
-    },
-    'send_discord_notify': {
-        'task': 'thimo.tgd.tasks.send_discord_notify',
-        'schedule': timedelta(seconds=400),
-    },
-    'update_twitch_token': {
-        'task': 'thimo.account.tasks.update_twitch_token',
-        'schedule': timedelta(hours=1),
-    },
-    'update_discord_token': {
-        'task': 'thimo.account.tasks.update_discord_token',
-        'schedule': timedelta(hours=1),
-    }
-}
+CELERYBEAT_SCHEDULE = {}
 
 broker_url = 'redis://{}:{}/0'.format(env('REDIS_HOST'), env('REDIS_PORT'))
 result_backend = 'redis://{}:{}/0'.format(env('REDIS_HOST'), env('REDIS_PORT'))
@@ -173,6 +165,12 @@ CACHES = {
         }
     }
 }
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger',
+}
+
+CSRF_TRUSTED_ORIGINS = [env('CSRF_TRUSTED_ORIGINS')]
 
 LOGGING = {
     'version': 1,
