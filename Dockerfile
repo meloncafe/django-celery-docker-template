@@ -1,6 +1,7 @@
 FROM python:3.9-slim
 
 ENV PYTHONUNBUFFERED 1
+ARG DEBUG=0
 
 WORKDIR /app
 
@@ -10,7 +11,11 @@ RUN apt-get update \
     libmariadb-dev gcc supervisor git htop
 
 COPY ./backend /app/backend
-COPY ./config/.env /app/config/.env
+
+RUN if [[ ${DEBUG} == 0 ]]; then \
+        COPY ./config/.env /app/config/.env \
+    fi
+
 COPY ./manage.py /app/manage.py
 COPY ./setup.py /app/setup.py
 COPY ./docker/script/server-entrypoint.sh /app/server-entrypoint.sh
