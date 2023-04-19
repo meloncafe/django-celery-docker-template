@@ -13,7 +13,7 @@ RUN apt-get update \
 COPY ./backend /app/backend
 
 RUN if [[ ${DEBUG} == 0 ]]; then \
-        COPY ./config/.env /app/config/.env \
+        COPY ./config/.env /app/config/.env; \
     fi
 
 COPY ./manage.py /app/manage.py
