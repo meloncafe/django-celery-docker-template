@@ -23,9 +23,11 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install Dependencies
       run: |
-        cp ./config/env.test ./config/.env
+        ls -al
         python -m pip install --upgrade pip
         pip install -e .
     - name: Run Tests
       run: |
+        ls -al
+        cp ./config/env.test ./config/.env
         python manage.py test
