@@ -21,7 +21,16 @@ All packages except 'django-redis' are up to date
 django-redis are >=5.2.0,<6.0.0
 ```
 
-## Docker
+## How to use
+> For development, use your own django runserver and use Docker for Production deployment
+
+## Docker Image Build
 ```bash
-docker-compose up -d --build
+$ build.sh
 ```
+
+## Production Deploy
+```bash
+$ deploy.sh
+```
+- Blue/Green Deployment
