@@ -10,7 +10,6 @@ django
 django-redis-cache
 django-celery-beat
 django-redis
-flower
 django-ipware
 django-request-logging
 django-environ
@@ -23,6 +22,13 @@ django-redis are >=5.2.0,<6.0.0
 
 ## How to use
 > For development, use your own django runserver and use Docker for Production deployment
+
+## Make Superuser
+```bash
+$ docker-compose exec django-app-green(or blue) bash
+$ python manage.py createsuperuser
+```
+> Migration automatically migrates containers as they run.
 
 ## Docker Image Build
 ```bash
