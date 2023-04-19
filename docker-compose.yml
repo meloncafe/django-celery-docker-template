@@ -39,54 +39,58 @@ services:
     ports:
       - 8000:8000
 
-#  celery-beat:
-#    build:
-#        context: .
-#        dockerfile: ./docker/app/Dockerfile
-#    container_name: django-celery-beat
-#    restart: unless-stopped
-#    entrypoint: /app/celery-entrypoint.sh beat
-#    volumes:
-#        - app-data:/app
-#    depends_on:
-#        - db
-#        - redis
-#        - web
-#
-#  celery-worker:
-#    build:
-#      context: .
-#      dockerfile: ./docker/app/Dockerfile
-#    container_name: django-celery-worker
-#    restart: unless-stopped
-#    entrypoint: /app/celery-entrypoint.sh worker
-#    volumes:
-#        - app-data:/app
-#    depends_on:
-#        - db
-#        - redis
-#        - web
-#
-#  celery-flower:
-#    build:
-#      context: .
-#      dockerfile: ./docker/app/Dockerfile
-#    container_name: django-celery-flower
-#    restart: unless-stopped
-#    entrypoint: /app/celery-entrypoint.sh flower
-#    volumes:
-#        - app-data:/app
-#    depends_on:
-#        - db
-#        - redis
-#        - web
-#    expose:
-#        - 5555
+  celery-beat:
+    image: django-backend:latest
+    container_name: django-celery-beat
+    restart: unless-stopped
+    entrypoint: /app/celery-entrypoint.sh beat
+    volumes:
+        - app-data:/app
+    depends_on:
+        - db
+        - redis
+        - web
 
-  django:
-    build:
-      context: .
-      dockerfile: ./docker/app/Dockerfile
+  celery-worker:
+    image: django-backend:latest
+    container_name: django-celery-worker
+    restart: unless-stopped
+    entrypoint: /app/celery-entrypoint.sh worker
+    volumes:
+        - app-data:/app
+    depends_on:
+        - db
+        - redis
+        - web
+
+  celery-flower:
+    image: django-backend:latest
+    container_name: django-celery-flower
+    restart: unless-stopped
+    entrypoint: /app/celery-entrypoint.sh flower
+    volumes:
+        - app-data:/app
+    depends_on:
+        - db
+        - redis
+        - web
+    expose:
+        - 5555
+
+  django-app-blue:
+    image: django-backend:latest
+    container_name: django-app
+    restart: unless-stopped
+    entrypoint: /app/server-entrypoint.sh
+    volumes:
+        - app-data:/app
+    depends_on:
+        - db
+        - redis
+        - web
+
+  django-app-green:
+    image: django-backend:latest
     container_name: django-app
     restart: unless-stopped
     entrypoint: /app/server-entrypoint.sh
