@@ -3,7 +3,7 @@
 # Docker image build
 sh build.sh
 
-RUNNING_APPLICATION=$(docker ps | grep blue)
+RUNNING_APPLICATION=$(docker ps | grep django-app-blue)
 DEFAULT_CONF="docker/config/nginx/app.conf"
 
 if [ -n "$RUNNING_APPLICATION"  ];then
@@ -24,6 +24,8 @@ if [ -n "$RUNNING_APPLICATION"  ];then
 	sed -i 's/blue/green/g' $DEFAULT_CONF
 	docker exec django-web service nginx reload
 	docker-compose stop django-app-blue
+	# App volume remove
+  docker volume rm $(docker volume ls -f name=django-app-blue -q)
 else
 	echo "Django App Blue Deploy..."
 	docker-compose pull django-app-blue
@@ -40,6 +42,8 @@ else
     done;
 
 	sed -i 's/green/blue/g' $DEFAULT_CONF
-    docker exec django-web service nginx reload
+  docker exec django-web service nginx reload
 	docker-compose stop django-app-green
+	# App volume remove
+  docker volume rm $(docker volume ls -f name=django-app-green -q)
 fi
