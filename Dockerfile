@@ -14,6 +14,8 @@ COPY ./backend /app/backend
 
 RUN if [[ ${DEBUG} == 0 ]]; then \
         COPY ./config/.env /app/config/.env; \
+    else \
+        COPY ./config/.env.test /app/config/.env; \
     fi
 
 COPY ./manage.py /app/manage.py
