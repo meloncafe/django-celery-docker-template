@@ -21,6 +21,8 @@ django-redis are >=5.2.0,<6.0.0
 ```
 
 ## How to use
+> Copy the config/.env.example file to the .env file, fill in the contents and use it.
+
 > For development, use your own django runserver and use Docker for Production deployment
 
 ## Make Superuser
