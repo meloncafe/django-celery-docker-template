@@ -34,3 +34,4 @@ $ build.sh
 $ deploy.sh
 ```
 - Blue/Green Deployment
+- Nginx Port : 8000
