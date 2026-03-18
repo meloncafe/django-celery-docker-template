@@ -11,7 +11,7 @@ install_requires = [
     'django',
     'django-redis-cache',
     'django-celery-beat',
-    'django-redis>=5.2.0,<6.0.0',
+    'django-redis>=6.0.0,<6.1.0',
 
     'django-ipware',
     'django-request-logging',
